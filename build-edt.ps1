@@ -36,11 +36,13 @@ docker build `
 
 $EDT_MAJOR_VERSION = $env:EDT_VERSION.Split('.')[0]
 if ([int]$EDT_MAJOR_VERSION -ge 2024) {
-    $env:BASE_IMAGE = "azul/zulu-openjdk"
-    $env:BASE_TAG = "17"
+    $env:BASE_IMAGE = "bellsoft/liberica-openjdk-debian"
+    $env:BASE_TAG = "17.0.14"
+    $env:D_JAVA_HOME = "/usr/lib/jvm/jdk-17.0.14-bellsoft-x86_64" # сюда в /lib положим JavaFX
 } else {
     $env:BASE_IMAGE = "eclipse-temurin"
     $env:BASE_TAG = "11"
+    $env:D_JAVA_HOME = "/opt/java/openjdk" # сюда в /lib положим JavaFX
 }
 
 docker build `
@@ -50,9 +52,10 @@ docker build `
     --build-arg DOCKER_REGISTRY_URL=$env:DOCKER_REGISTRY_URL `
     --build-arg BASE_IMAGE=$env:BASE_IMAGE `
     --build-arg BASE_TAG=$env:BASE_TAG `
+    --build-arg D_JAVA_HOME=$env:D_JAVA_HOME `
     --build-arg DOWNLOADER_IMAGE=oscript-downloader `
     --build-arg DOWNLOADER_TAG=latest `
-    -t "$($env:DOCKER_REGISTRY_URL)/edt:$($env:EDT_VERSION)" `
-    -f edt/Dockerfile .`
+    -t "$($env:DOCKER_REGISTRY_URL)/edtlb:$($env:EDT_VERSION)" `
+    -f edt/Dockerfile .
 
-docker push "$($env:DOCKER_REGISTRY_URL)/edt:$($env:EDT_VERSION)"
+#docker push "$($env:DOCKER_REGISTRY_URL)/edt:$($env:EDT_VERSION)"

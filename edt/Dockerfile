@@ -16,7 +16,7 @@ RUN chmod +x /download.sh
 # Скачивание дистрибутива 1С с использованием вынесенного скрипта
 ARG ONEC_USERNAME
 ARG ONEC_PASSWORD
-ARG EDT_VERSION=2021.3
+ARG EDT_VERSION=2024.2
 
 WORKDIR /tmp
 
@@ -37,25 +37,27 @@ ENV LC_ALL=ru_RU.UTF-8
 
 RUN /download.sh "$ONEC_USERNAME" "$ONEC_PASSWORD" "$EDT_VERSION" "edt"
 
-
 FROM ${BASE_IMAGE}:${BASE_TAG}
-
+ARG D_JAVA_HOME=/opt/java/openjdk
 LABEL maintainer="Nikita Gryzlov <NikGryzlov@1bit.com>, FirstBit"
 
 WORKDIR /tmp
+
+ADD https://download2.gluonhq.com/openjfx/17.0.14/openjfx-17.0.14_linux-x64_bin-sdk.zip /tmp/javafx-sdk.zip
 
 RUN apt-get update \
   && DEBIAN_FRONTEND=noninteractive apt-get install --no-install-recommends -y \
     curl \
     libgtk-3-0 \
     locales \
-  && rm -rf  \
-    /var/lib/apt/lists/* \
-    /var/cache/debconf \
-    /tmp/* \
+    unzip \
+  && rm -rf /var/lib/apt/lists/* /var/cache/debconf/* \
+  && unzip /tmp/javafx-sdk.zip -d /opt/ \
+  && rm /tmp/javafx-sdk.zip \
+  && cp /opt/javafx-sdk-17.0.14/lib/*.jar "$D_JAVA_HOME/lib" \
   && localedef -i ru_RU -c -f UTF-8 -A /usr/share/locale/locale.alias ru_RU.UTF-8
 
-ARG EDT_VERSION=2021.3
+ARG EDT_VERSION=2024.2
 ARG downloads=downloads/DevelopmentTools10/${EDT_VERSION}
 
 # Установка переменных окружения для корректной работы локали

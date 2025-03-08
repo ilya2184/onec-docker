@@ -65,13 +65,13 @@ DOCKER_SYSTEM_PRUNE=false
 
 Пример использования, временная или нет рабочей области, файлы src проекта EDT находятся здесь `D:\Projects\sample-onec-ws\sample-onec\edt-project\src`
 ```shell
-docker run --rm -v "D:\Projects:/home/projects" -v "C:\Temp:/tmp/work" localhost:5000/edt:2024.2.3 1cedtcli -data "/tmp/tmp-edt-ws" -command export --project "/home/projects/sample-onec-ws/sample-onec/edt-project" --configuration-files "/tmp/work/1-0-0-1-3df46495/"
+docker run --rm -v "D:\Projects:/home/projects" -v "C:\Temp:/tmp/work" localhost:5000/edt:2024.2.3 1cedtcli -data "/tmp/work/tmp-edt-ws" -command export --project "/home/projects/sample-onec-ws/sample-onec/edt-project" --configuration-files "/tmp/work/1-0-0-1-3df46495/"
 ```
 в результате в `C:\Temp\1-0-0-1-3df46495` имеем конфигурационные файлы в формате 1С
 
 Пример использования, ранее созданная рабочая область находится здесь `D:/Projects/slk-ws`, в рабочей области есть проект с именем `acc3-edt`
 ```shell
-docker run --rm -v "D:\Projects:/home/projects" -v "C:\Temp:/tmp/work" localhost:5000/edt:2024.2.3  1cedtcli -data "/home/projects/slk-ws" -command export --project-name "acc3-edt" --configuration-files "/tmp/work/3-0-177-16-d9104849/"
+docker run --rm -v "D:\Projects:/home/projects" -v "C:\Temp:/tmp/work" localhost:5000/edt:2024.2.3 1cedtcli -data "/home/projects/slk-ws" -command export --project-name "acc3-edt" --configuration-files "/tmp/work/3-0-177-16-d9104849/"
 ```
 в результате изредка в `C:\Temp\3-0-177-16-d9104849` конфигурационные файлы в формате 1С
 
