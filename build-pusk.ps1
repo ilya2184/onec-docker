@@ -23,7 +23,6 @@ if (-not [string]::IsNullOrEmpty($env:DOCKER_LOGIN) -and -not [string]::IsNullOr
 
 docker build `
     --tag "$($env:DOCKER_REGISTRY_URL)/pusk:1.2.1" `
-    --file pusk/Dockerfile `
-    .
+    --file pusk/Dockerfile .
 
 docker push "$($env:DOCKER_REGISTRY_URL)/pusk:1.2.1"
