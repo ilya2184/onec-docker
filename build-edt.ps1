@@ -55,7 +55,7 @@ docker build `
     --build-arg D_JAVA_HOME=$env:D_JAVA_HOME `
     --build-arg DOWNLOADER_IMAGE=oscript-downloader `
     --build-arg DOWNLOADER_TAG=latest `
-    -t "$($env:DOCKER_REGISTRY_URL)/edtlb:$($env:EDT_VERSION)" `
+    -t "$($env:DOCKER_REGISTRY_URL)/edt:$($env:EDT_VERSION)" `
     -f edt/Dockerfile .
 
-#docker push "$($env:DOCKER_REGISTRY_URL)/edt:$($env:EDT_VERSION)"
+docker push "$($env:DOCKER_REGISTRY_URL)/edt:$($env:EDT_VERSION)"
