@@ -25,6 +25,7 @@ if ($env:DOCKER_SYSTEM_PRUNE -eq 'true') {
     docker system prune -af
 }
 
+# строим проверяем Onescript-yard
 docker build `
     --pull `
     --build-arg DOCKER_REGISTRY_URL=library `
@@ -34,6 +35,28 @@ docker build `
     -t "$($env:DOCKER_REGISTRY_URL)/oscript-downloader:latest" `
     -f oscript/Dockerfile .
 
+# строим проверяем обёртку для загрузки дистрибутивов Onescript-yard
+docker build `
+    --build-arg DOCKER_REGISTRY_URL=$env:DOCKER_REGISTRY_URL `
+    --build-arg BASE_IMAGE=oscript-downloader `
+    --build-arg BASE_TAG=latest `
+    -t "$($env:DOCKER_REGISTRY_URL)/osd:latest" `
+    -f oscript-downloader/Dockerfile .
+
+docker push "$($env:DOCKER_REGISTRY_URL)/osd:latest"
+
+# загружаем ЕДТ если его ещё нет
+docker run --rm -v "D:\Projects\onec-docker-my\distr:/tmp/downloads" "$($env:DOCKER_REGISTRY_URL)/osd:latest" `
+    $($env:ONEC_USERNAME) $($env:ONEC_PASSWORD) $($env:EDT_VERSION) "edt"
+
+# строим проверяем web-сервер для дистрибутивов
+docker build -t distr_server -f distr-server/Dockerfile .
+
+# запускаем web-сервер для дистрибутивов
+docker run --rm --name distr_server -d -v "D:\Projects\onec-docker-my\distr:/distr" -p 5555:5000 distr_server
+$env:DISTR_HOST = "host.docker.internal:5555"
+
+# определяем базовый образ для ЕДТ
 $EDT_MAJOR_VERSION = $env:EDT_VERSION.Split('.')[0]
 if ([int]$EDT_MAJOR_VERSION -ge 2024) {
     $env:BASE_IMAGE = "bellsoft/liberica-openjdk-debian"
@@ -45,17 +68,16 @@ if ([int]$EDT_MAJOR_VERSION -ge 2024) {
     $env:D_JAVA_HOME = "/opt/java/openjdk" # сюда в /lib положим JavaFX
 }
 
+# строим образ ЕДТ
 docker build `
-    --build-arg ONEC_USERNAME=$env:ONEC_USERNAME `
-    --build-arg ONEC_PASSWORD=$env:ONEC_PASSWORD `
     --build-arg EDT_VERSION=$env:EDT_VERSION `
-    --build-arg DOCKER_REGISTRY_URL=$env:DOCKER_REGISTRY_URL `
     --build-arg BASE_IMAGE=$env:BASE_IMAGE `
     --build-arg BASE_TAG=$env:BASE_TAG `
     --build-arg D_JAVA_HOME=$env:D_JAVA_HOME `
-    --build-arg DOWNLOADER_IMAGE=oscript-downloader `
-    --build-arg DOWNLOADER_TAG=latest `
+    --build-arg DISTR_HOST=$env:DISTR_HOST `
     -t "$($env:DOCKER_REGISTRY_URL)/edt:$($env:EDT_VERSION)" `
     -f edt/Dockerfile .
 
 docker push "$($env:DOCKER_REGISTRY_URL)/edt:$($env:EDT_VERSION)"
+
+docker stop distr_server
