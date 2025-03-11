@@ -1,83 +1,38 @@
-$envFilePath = ".env"
+Import-Module "./HelperBuild.psm1"
 
-# Чтение .env файла и загрузка переменных окружения
-if (Test-Path $envFilePath) {
-    Get-Content $envFilePath | ForEach-Object {
-        if ($_ -match '^(?<key>[^=]+)=(?<value>.*)$') {
-            $key = $matches['key'].Trim()
-            $value = $matches['value'].Trim()
-            [System.Environment]::SetEnvironmentVariable($key, $value)
-        }
-    }
-}
-
-if (-not [string]::IsNullOrEmpty($env:DOCKER_LOGIN) -and -not [string]::IsNullOrEmpty($env:DOCKER_PASSWORD) -and -not [string]::IsNullOrEmpty($env:DOCKER_REGISTRY_URL)) {
-    docker login -u $env:DOCKER_LOGIN -p $env:DOCKER_PASSWORD $env:DOCKER_REGISTRY_URL
-    if ($LASTEXITCODE -ne 0) {
-        Write-Host "Docker login failed"
-        exit 1
-    }
-} else {
-    Write-Host "Skipping Docker login due to missing credentials"
-}
-
-if ($env:DOCKER_SYSTEM_PRUNE -eq 'true') {
-    docker system prune -af
-}
-
-# строим проверяем Onescript-yard
-docker build `
-    --pull `
-    --build-arg DOCKER_REGISTRY_URL=library `
-    --build-arg BASE_IMAGE=ubuntu `
-    --build-arg BASE_TAG=20.04 `
-    --build-arg ONESCRIPT_PACKAGES="yard" `
-    -t "$($env:DOCKER_REGISTRY_URL)/oscript-downloader:latest" `
-    -f oscript/Dockerfile .
-
-# строим проверяем обёртку для загрузки дистрибутивов Onescript-yard
-docker build `
-    --build-arg DOCKER_REGISTRY_URL=$env:DOCKER_REGISTRY_URL `
-    --build-arg BASE_IMAGE=oscript-downloader `
-    --build-arg BASE_TAG=latest `
-    -t "$($env:DOCKER_REGISTRY_URL)/osd:latest" `
-    -f oscript-downloader/Dockerfile .
-
-docker push "$($env:DOCKER_REGISTRY_URL)/osd:latest"
-
-# загружаем ЕДТ если его ещё нет
-docker run --rm -v "D:\Projects\onec-docker-my\distr:/tmp/downloads" "$($env:DOCKER_REGISTRY_URL)/osd:latest" `
-    $($env:ONEC_USERNAME) $($env:ONEC_PASSWORD) $($env:EDT_VERSION) "edt"
-
-# строим проверяем web-сервер для дистрибутивов
-docker build -t distr_server -f distr-server/Dockerfile .
-
-# запускаем web-сервер для дистрибутивов
-docker run --rm --name distr_server -d -v "D:\Projects\onec-docker-my\distr:/distr" -p 5555:5000 distr_server
-$env:DISTR_HOST = "host.docker.internal:5555"
+Read-EnvFile
+Test-DockerRegistryLogin
 
 # определяем базовый образ для ЕДТ
 $EDT_MAJOR_VERSION = $env:EDT_VERSION.Split('.')[0]
 if ([int]$EDT_MAJOR_VERSION -ge 2024) {
-    $env:BASE_IMAGE = "bellsoft/liberica-openjdk-debian"
-    $env:BASE_TAG = "17.0.14"
-    $env:D_JAVA_HOME = "/usr/lib/jvm/jdk-17.0.14-bellsoft-x86_64" # сюда в /lib положим JavaFX
+    $edtBaseImage = "bellsoft/liberica-openjdk-debian"
+    $edtBaseTag = "17.0.14"
 } else {
     $env:BASE_IMAGE = "eclipse-temurin"
     $env:BASE_TAG = "11"
-    $env:D_JAVA_HOME = "/opt/java/openjdk" # сюда в /lib положим JavaFX
 }
+
+# готовим дистрибутив
+Build-Yard
+$distrPath = Join-Path -Path $PSScriptRoot -ChildPath "distr"
+Get-DistribByYard -distrName "edt" -distrVersion $($env:EDT_VERSION) -distrPath $distrPath
+# Строим и запускаем web-server для дистрибутивов
+Build-DistribWebServer
+$distrWebPort = "8088"
+$thisServer = "host.docker.internal"
+Start-DistribWebServer -distrPath $distrPath -distrWebPort $distrWebPort
+$distrHost = $thisServer + ":" + $distrWebPort
 
 # строим образ ЕДТ
 docker build `
     --build-arg EDT_VERSION=$env:EDT_VERSION `
-    --build-arg BASE_IMAGE=$env:BASE_IMAGE `
-    --build-arg BASE_TAG=$env:BASE_TAG `
-    --build-arg D_JAVA_HOME=$env:D_JAVA_HOME `
-    --build-arg DISTR_HOST=$env:DISTR_HOST `
-    -t "$($env:DOCKER_REGISTRY_URL)/edt:$($env:EDT_VERSION)" `
-    -f edt/Dockerfile .
+    --build-arg BASE_IMAGE=$edtBaseImage `
+    --build-arg BASE_TAG=$edtBaseTag `
+    --build-arg DISTR_HOST=$distrHost `
+    --tag "$($env:DOCKER_REGISTRY_URL)/edt:$($env:EDT_VERSION)" `
+    --file edt/Dockerfile .
 
 docker push "$($env:DOCKER_REGISTRY_URL)/edt:$($env:EDT_VERSION)"
 
-docker stop distr_server
+Stop-DistribWebServer

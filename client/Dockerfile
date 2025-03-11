@@ -1,120 +1,83 @@
-# Используем базовый образ для скачивания
-ARG DOCKER_REGISTRY_URL=localhost:5000
-ARG BASE_IMAGE=oscript-downloader
-ARG BASE_TAG=latest
-FROM ${DOCKER_REGISTRY_URL}/${BASE_IMAGE}:${BASE_TAG} AS downloader
+ARG BASE_IMAGE=ubuntu
+ARG BASE_TAG=20.04
+FROM ${BASE_IMAGE}:${BASE_TAG}
 
-# Копирование скрипта скачивания и локальных дистрибутивов
-COPY ./scripts/download_yard.sh /download.sh
-COPY ./distr /distr
-RUN chmod +x /download.sh
-
-# Скачивание дистрибутива 1С с использованием вынесенного скрипта
-ARG ONEC_USERNAME
-ARG ONEC_PASSWORD
-ARG ONEC_VERSION
+ARG ONEC_VERSION="8.3.25.1546"
+ARG DISTR_HOST="host.docker.internal:8088"
 
 WORKDIR /tmp
 
-# Установка необходимых пакетов и генерация локали
-RUN apt-get update \
-  && apt-get install --yes \
-    locales \
-    p7zip-full \
-    p7zip-rar \
-  && rm -rf /var/lib/apt/lists/* \
-  && locale-gen ru_RU.UTF-8 \
-  && localedef -i ru_RU -c -f UTF-8 -A /usr/share/locale/locale.alias ru_RU.UTF-8
+ADD https://github.com/tianon/gosu/releases/download/1.11/gosu-amd64 /bin/gosu
+COPY ./client/docker-entrypoint.sh /tmp/docker-entrypoint.sh
+COPY ./client/conf.cfg /tmp/conf.cfg
 
-# Установка переменных окружения для корректной работы локали
+RUN set -xe \
+    && apt-get update \
+    && DEBIAN_FRONTEND=noninteractive apt-get install --yes --no-install-recommends \
+      ca-certificates \
+      libfontconfig1 \
+      libglib2.0-0 \
+      libgsf-1-114 \
+      libgssapi-krb5-2 \
+      libgtk2.0-0 \
+      libmagickwand-6.q16-6 \
+      libodbc1 \
+      libsm6 \
+      libwebkit2gtk-4.0-37 \
+      locales \
+      ttf-mscorefonts-installer \
+      tzdata \
+      wget \
+      xvfb \
+    # общая настройка
+    && update-ca-certificates \
+    && rm -rf /var/lib/apt/lists/* /var/cache/debconf \
+    && localedef -i ru_RU -c -f UTF-8 -A /usr/share/locale/locale.alias ru_RU.UTF-8 \
+    # Загрузка и установка 1С
+    && wget --recursive --no-parent --quiet \
+        http://${DISTR_HOST}/distr/Platform83/${ONEC_VERSION} \
+    && mv /tmp/${DISTR_HOST}/distr/Platform83/${ONEC_VERSION}/* /tmp/ \
+    && RUN_FILE=$(find /tmp -name "*.run" | head -n 1) \
+    && chmod +x ${RUN_FILE} \
+    && ${RUN_FILE} --mode unattended --enable-components "server,client_full,client_thin,client_thin_fib,ru" \
+    # настраиваем текущую директорию
+    && PLATFORM_PATH=$( \
+        find / -type f -name "1cv8c" -exec dirname {} \; -or \
+        -type f -name "1cv8" -exec dirname {} \; -or \
+        -type f -name "ragent" -exec dirname {} \; -or \
+        -type f -name "crserver" -exec dirname {} \; | uniq ) \
+    && mkdir -p /opt/1cv8 \
+    && ln -s ${PLATFORM_PATH} /opt/1cv8/current \
+    # gosu
+    && chmod +x /bin/gosu \
+    # прользователь и группа для работы 1С
+    && getent group grp1cv8 || groupadd -r grp1cv8 --gid=999 \
+    && getent passwd usr1cv8 || useradd -r -g grp1cv8 --uid=999 --home-dir=/home/usr1cv8 --shell=/bin/bash usr1cv8 \
+    && mkdir -p /var/log/1C /home/usr1cv8/.1cv8/1C/1cv8/conf /opt/1cv8/current/conf \
+    && chown -R usr1cv8:grp1cv8 /var/log/1C /home/usr1cv8 \
+    # кладем конфиг клиента
+    && cp /tmp/conf.cfg /opt/1cv8/current/conf \
+    # чтобы xvfb нормально работал
+    && mkdir -p /tmp/.X11-unix \
+    && chmod 1777 -R /tmp \
+    # точка входа
+    && cp /tmp/docker-entrypoint.sh / \
+    && chmod +x /docker-entrypoint.sh \
+    # зачищаем временные файлы
+    && rm -rf /tmp/*
+
 ENV LANG=ru_RU.UTF-8
-ENV LANGUAGE=ru_RU:ru
+ENV LANGUAGE=ru_RU:ru 
 ENV LC_ALL=ru_RU.UTF-8
-
-RUN /download.sh "$ONEC_USERNAME" "$ONEC_PASSWORD" "$ONEC_VERSION" "client"
-
-# Начало основной стадии сборки
-FROM ubuntu:20.04 AS onecclient
-
-# Копируем скрипты и файлы установки
-ARG ONEC_VERSION
-ARG gosu_ver=1.11
-ARG nls_enabled=false
-ENV nls=$nls_enabled
-ENV distrPath=/tmp/downloads/Platform83/${ONEC_VERSION}
-ENV installer_type=client
-
-RUN set -xe \
-  && chmod 777 -R /tmp
-
-COPY ./scripts/install_new.sh /install.sh
-COPY --from=downloader /tmp/ /tmp/
-WORKDIR ${distrPath}      
-
-SHELL ["/bin/bash", "-c"]
-RUN ls . \
-  && chmod +x /install.sh \
-  && sync; /install.sh
-
-# create symlink to current 1c:enterprise directory
-COPY ./scripts/create-symlink-to-current-1cv8.sh /create-symlink-to-current-1cv8.sh
-RUN chmod +x /create-symlink-to-current-1cv8.sh \
-  && /create-symlink-to-current-1cv8.sh \
-  && rm /create-symlink-to-current-1cv8.sh
-
-COPY ./configs/client/current/ /opt/1cv8/current/
-
-FROM ubuntu:20.04
-LABEL maintainer="Anton Kvashenkin <anton.jugatsu@gmail.com> (@jugatsu)"
-
-ARG onec_uid="999"
-ARG onec_gid="999"
-
-COPY --from=onecclient /opt /opt
-
-RUN set -xe \
-  && chmod 777 -R /tmp \
-  && apt-get update \
-  && echo ttf-mscorefonts-installer msttcorefonts/accepted-mscorefonts-eula select true | debconf-set-selections \
-  && DEBIAN_FRONTEND=noninteractive apt-get install --yes \
-    ca-certificates \
-    libfontconfig1 \
-    libglib2.0-0 \
-    libgsf-1-114 \
-    libgtk2.0-0 \
-    libmagickwand-6.q16-6 \
-    libodbc1 \
-    libsm6 \
-    libwebkit2gtk-4.0-37 \
-    locales \
-    ttf-mscorefonts-installer \
-    xvfb \
-  && update-ca-certificates \
-  && rm -rf /var/lib/apt/lists/* /var/cache/debconf \
-  && localedef -i ru_RU -c -f UTF-8 -A /usr/share/locale/locale.alias ru_RU.UTF-8
-
-ENV LANG=ru_RU.UTF-8
-
-RUN groupadd -r grp1cv8 --gid=$onec_gid \
-  && useradd -r -g grp1cv8 --uid=$onec_uid --home-dir=/home/usr1cv8 --shell=/bin/bash usr1cv8 \
-  && mkdir -p /home/usr1cv8/.1cv8 \
-  && mkdir -p /home/usr1cv8/.1C/1cestart \
-  && chown -R usr1cv8:grp1cv8 /home/usr1cv8
-
-VOLUME /home/usr1cv8/.1cv8/
-
-COPY ./client/docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
-RUN ln -s /usr/local/bin/docker-entrypoint.sh / \
-  && chmod +x /usr/local/bin/docker-entrypoint.sh \
-  && mkdir -p /tmp/.X11-unix \
-  && chmod 1777 -R /tmp
-
+ENV PATH="/opt/1cv8/current:$PATH"
 ENV DISPLAY=:0
 ENV DISPLAY_WIDTH=1440
 ENV DISPLAY_HEIGHT=900
 
-ENTRYPOINT ["/usr/local/bin/docker-entrypoint.sh"]
+VOLUME /home/usr1cv8
 
-USER usr1cv8
+# порты менеджера тестирования
+EXPOSE 1538 1539
 
+ENTRYPOINT ["/docker-entrypoint.sh"]
 CMD ["1cv8"]
