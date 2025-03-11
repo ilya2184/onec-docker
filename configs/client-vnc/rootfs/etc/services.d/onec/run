@@ -1,5 +1,0 @@
-#!/usr/bin/with-contenv sh
-
-export HOME=/home/usr1cv8
-
-exec s6-setuidgid usr1cv8 1cv8

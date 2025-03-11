@@ -22,6 +22,7 @@ RUN apt-get update \
         xdg-utils \
         xfce4 \
         xfce4-goodies \
+        xubuntu-icon-theme \
     && rm -rf /var/lib/apt/lists/* /var/cache/debconf \
     && mkdir -p /root/.gnupg && chmod 700 /root/.gnupg \
     && chmod +x /root/Desktop/1cestart.desktop \
