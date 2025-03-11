@@ -3,7 +3,7 @@ ARG ONEC_VERSION=8.3.25.1546
 FROM ${DOCKER_REGISTRY_URL}/onec-client:${ONEC_VERSION} AS onecclient
 
 ADD https://github.com/just-containers/s6-overlay/releases/download/v2.2.0.3/s6-overlay-amd64-installer /tmp/s6-overlay-installer
-
+COPY ./client-vnc/1cestart.desktop /root/Desktop/1cestart.desktop
 USER root
 
 RUN apt-get update \
@@ -24,13 +24,17 @@ RUN apt-get update \
         xfce4-goodies \
     && rm -rf /var/lib/apt/lists/* /var/cache/debconf \
     && mkdir -p /root/.gnupg && chmod 700 /root/.gnupg \
+    && chmod +x /root/Desktop/1cestart.desktop \
     && chmod +x /tmp/s6-overlay-installer && /tmp/s6-overlay-installer /
 
 COPY ./configs/client-vnc/rootfs/ /
 
 EXPOSE 5900
 
-ENV DISPLAY=:0
+ENV LANG=ru_RU.UTF-8
+ENV LANGUAGE=ru_RU:ru 
+ENV LC_ALL=ru_RU.UTF-8
+ENV DISPLAY=:1
 ENV DISPLAY_WIDTH=1440
 ENV DISPLAY_HEIGHT=900
 

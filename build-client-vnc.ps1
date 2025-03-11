@@ -9,7 +9,7 @@ Test-DockerRegistryLogin
 docker build `
     --build-arg ONEC_VERSION=$env:ONEC_VERSION `
     --build-arg DOCKER_REGISTRY_URL=$env:DOCKER_REGISTRY_URL `
-    -t "$($env:DOCKER_REGISTRY_URL)onec-client-vnc:$($env:ONEC_VERSION)" `
-    -f client/Dockerfile .
+    --tag "$($env:DOCKER_REGISTRY_URL)/onec-client-vnc:$($env:ONEC_VERSION)" `
+    --file client-vnc/Dockerfile .
 
 docker push "$($env:DOCKER_REGISTRY_URL)/onec-client-vnc:$($env:ONEC_VERSION)"

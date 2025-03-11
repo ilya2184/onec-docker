@@ -1,0 +1,7 @@
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=1C Start
+Exec=/opt/1cv8/common/1cestart
+Terminal=false
+Categories=Office;

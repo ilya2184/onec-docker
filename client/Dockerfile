@@ -1,9 +1,10 @@
 ARG BASE_IMAGE=ubuntu
 ARG BASE_TAG=20.04
+
 FROM ${BASE_IMAGE}:${BASE_TAG}
 
-ARG ONEC_VERSION="8.3.25.1546"
-ARG DISTR_HOST="host.docker.internal:8088"
+ARG DISTR_HOST=host.docker.internal:8088
+ARG ONEC_VERSION=8.3.25.1546
 
 WORKDIR /tmp
 
@@ -39,13 +40,11 @@ RUN set -xe \
     && mv /tmp/${DISTR_HOST}/distr/Platform83/${ONEC_VERSION}/* /tmp/ \
     && RUN_FILE=$(find /tmp -name "*.run" | head -n 1) \
     && chmod +x ${RUN_FILE} \
-    && ${RUN_FILE} --mode unattended --enable-components "server,client_full,client_thin,client_thin_fib,ru" \
+    && ${RUN_FILE} --mode unattended --enable-components "client_full,client_thin,client_thin_fib,ru" \
     # настраиваем текущую директорию
     && PLATFORM_PATH=$( \
         find / -type f -name "1cv8c" -exec dirname {} \; -or \
-        -type f -name "1cv8" -exec dirname {} \; -or \
-        -type f -name "ragent" -exec dirname {} \; -or \
-        -type f -name "crserver" -exec dirname {} \; | uniq ) \
+        -type f -name "1cv8" -exec dirname {} \; | uniq ) \
     && mkdir -p /opt/1cv8 \
     && ln -s ${PLATFORM_PATH} /opt/1cv8/current \
     # gosu
@@ -69,7 +68,7 @@ RUN set -xe \
 ENV LANG=ru_RU.UTF-8
 ENV LANGUAGE=ru_RU:ru 
 ENV LC_ALL=ru_RU.UTF-8
-ENV PATH="/opt/1cv8/current:$PATH"
+ENV PATH="/opt/1cv8/current:/opt/1cv8/common:$PATH"
 ENV DISPLAY=:0
 ENV DISPLAY_WIDTH=1440
 ENV DISPLAY_HEIGHT=900

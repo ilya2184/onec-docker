@@ -1,9 +1,10 @@
 ARG BASE_IMAGE=ubuntu
 ARG BASE_TAG=20.04
+
 FROM ${BASE_IMAGE}:${BASE_TAG}
 
-ARG ONEC_VERSION="8.3.25.1546"
-ARG DISTR_HOST="host.docker.internal:8088"
+ARG DISTR_HOST=host.docker.internal:8088
+ARG ONEC_VERSION=8.3.25.1546
 
 WORKDIR /tmp
 
@@ -33,9 +34,7 @@ RUN set -xe \
     && ${RUN_FILE} --mode unattended --enable-components "server,ws,config_storage_server,liberica_jre,ru" \
     # настраиваем текущую директорию
     && PLATFORM_PATH=$( \
-        find / -type f -name "1cv8c" -exec dirname {} \; -or \
-        -type f -name "1cv8" -exec dirname {} \; -or \
-        -type f -name "ragent" -exec dirname {} \; -or \
+        find / -type f -name "ragent" -exec dirname {} \; -or \
         -type f -name "crserver" -exec dirname {} \; | uniq ) \
     && mkdir -p /opt/1cv8 \
     && ln -s ${PLATFORM_PATH} /opt/1cv8/current \

@@ -80,7 +80,7 @@ docker run --rm -v "D:\Projects:/home/projects" -v "C:\Temp:/tmp/work" localhost
 
 пример использования:
 ```shell
-docker run --rm localhost:5000/onec-server:8.3.25.1546 /opt/1cv8/current/ibcmd --version
+docker run --rm localhost:5000/onec-server:8.3.25.1546 ibcmd --version
 ```
 
 ## Клиент
@@ -88,7 +88,7 @@ docker run --rm localhost:5000/onec-server:8.3.25.1546 /opt/1cv8/current/ibcmd -
 
 пример использования обновление конфигурации базы данных:
 ```shell
-docker run --rm -v "E:\Issues\sample-onec:/home/dbpath" localhost:5000/onec-client:8.3.25.1546 /opt/1cv8/current/1cv8 DESIGNER /F"/home/dbpath" /UpdateDBCfg /DisableStartupDialogs /DisableStartupMessages /Out /home/dbpath/.log -NoTruncate
+docker run --rm -v "E:\Issues\sample-onec:/home/dbpath" localhost:5000/onec-client:8.3.25.1546 1cv8 DESIGNER /F"/home/dbpath" /UpdateDBCfg /DisableStartupDialogs /DisableStartupMessages /Out /home/dbpath/.log -NoTruncate
 ```
 в файле `E:\Issues\sample-onec\.log` - дописываются ошибки
 
