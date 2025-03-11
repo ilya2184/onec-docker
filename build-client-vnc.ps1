@@ -2,14 +2,12 @@ Import-Module "./HelperBuild.psm1"
 
 Read-EnvFile
 Test-DockerRegistryLogin
+Build-Yard
+$distrPath = Join-Path -Path $PSScriptRoot -ChildPath "distr"
+Start-DistribWebServer -distrPath $distrPath -distrWebPort 8088
+$distrHost = "host.docker.internal:8088"
 
-# должен быть доступен дистрибутив onec-client
-# см. build-client.ps1
+# тебуется Build-DockerImage -buildType "onec-client" -distrHost $distrHost
+Build-DockerImage -buildType "onec-client-vnc" -distrHost $distrHost
 
-docker build `
-    --build-arg ONEC_VERSION=$env:ONEC_VERSION `
-    --build-arg DOCKER_REGISTRY_URL=$env:DOCKER_REGISTRY_URL `
-    --tag "$($env:DOCKER_REGISTRY_URL)/onec-client-vnc:$($env:ONEC_VERSION)" `
-    --file client-vnc/Dockerfile .
-
-docker push "$($env:DOCKER_REGISTRY_URL)/onec-client-vnc:$($env:ONEC_VERSION)"
+Stop-DistribWebServer

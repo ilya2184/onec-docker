@@ -4,11 +4,11 @@ ARG BASE_TAG=20.04
 FROM ${BASE_IMAGE}:${BASE_TAG}
 
 ARG DISTR_HOST=host.docker.internal:8088
-ARG ONEC_VERSION=8.3.25.1546
+ARG DISTR_VERSION=8.3.25.1546
 
 WORKDIR /tmp
 
-ADD https://github.com/tianon/gosu/releases/download/1.11/gosu-amd64 /bin/gosu
+ADD https://github.com/tianon/gosu/releases/download/1.17/gosu-amd64 /bin/gosu
 COPY ./client/docker-entrypoint.sh /tmp/docker-entrypoint.sh
 COPY ./client/conf.cfg /tmp/conf.cfg
 
@@ -36,8 +36,8 @@ RUN set -xe \
     && localedef -i ru_RU -c -f UTF-8 -A /usr/share/locale/locale.alias ru_RU.UTF-8 \
     # Загрузка и установка 1С
     && wget --recursive --no-parent --quiet \
-        http://${DISTR_HOST}/distr/Platform83/${ONEC_VERSION} \
-    && mv /tmp/${DISTR_HOST}/distr/Platform83/${ONEC_VERSION}/* /tmp/ \
+        http://${DISTR_HOST}/distr/Platform83/${DISTR_VERSION} \
+    && mv /tmp/${DISTR_HOST}/distr/Platform83/${DISTR_VERSION}/* /tmp/ \
     && RUN_FILE=$(find /tmp -name "*.run" | head -n 1) \
     && chmod +x ${RUN_FILE} \
     && ${RUN_FILE} --mode unattended --enable-components "client_full,client_thin,client_thin_fib,ru" \

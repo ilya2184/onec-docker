@@ -2,12 +2,13 @@ Import-Module "./HelperBuild.psm1"
 
 Read-EnvFile
 Test-DockerRegistryLogin
+Build-Yard
+$distrPath = Join-Path -Path $PSScriptRoot -ChildPath "distr"
+Start-DistribWebServer -distrPath $distrPath -distrWebPort 8088
+$distrHost = "host.docker.internal:8088"
 
-docker build `
-    --build-arg ONEC_VERSION=$env:ONEC_VERSION `
-    --build-arg DOCKER_REGISTRY_URL=$env:DOCKER_REGISTRY_URL `
-    --build-arg BASE_TAG=$env:ONEC_VERSION `
-    --tag "$($env:DOCKER_REGISTRY_URL)/crs-apache:$($env:ONEC_VERSION)" `
-    --file crs-apache/Dockerfile .
+# требуется Build-DockerImage -buildType "onec-server" -distrHost $distrHost
+# требуется Build-DockerImage -buildType "crs" -distrHost $distrHost
+Build-DockerImage -buildType "crs-apache" -distrHost $distrHost
 
-docker push "$($env:DOCKER_REGISTRY_URL)/crs-apache:$($env:ONEC_VERSION)"
+Stop-DistribWebServer

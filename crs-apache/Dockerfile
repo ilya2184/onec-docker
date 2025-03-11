@@ -1,7 +1,7 @@
 ARG DOCKER_REGISTRY_URL=localhost:5000
-ARG ONEC_VERSION=8.3.25.1546
-
-FROM ${DOCKER_REGISTRY_URL}/crs:${ONEC_VERSION}
+ARG BASE_IMAGE=crs
+ARG BASE_TAG=8.3.25.1546
+FROM ${DOCKER_REGISTRY_URL}/${BASE_IMAGE}:${BASE_TAG}
 
 COPY ./crs-apache/1crs.conf /etc/apache2/conf-available/
 COPY ./crs-apache/docker-entrypoint.sh /

@@ -86,3 +86,83 @@ function Stop-DistribWebServer {
     docker stop distr_server
     Write-Host "distr server stopped"
 }
+
+function Build-DockerImage {
+    param (
+        [Parameter(Mandatory=$true)]
+        [ValidateSet("edt", "onec-server", "crs", "crs-apache", "onec-client", "onec-client-vnc")]
+        [string]$buildType,
+        [string]$distrHost,
+        [string]$distrPath
+    )
+
+    switch ($buildType) {
+        "edt" {
+            $distrName = "edt"
+            $distrVersion = $env:EDT_VERSION
+            $EDT_MAJOR_VERSION = $env:EDT_VERSION.Split('.')[0]
+            if ([int]$EDT_MAJOR_VERSION -ge 2024) {
+                $baseImage = "bellsoft/liberica-openjdk-debian"
+                $baseTag = "17.0.14"
+            } else {
+                $baseImage = "eclipse-temurin"
+                $baseTag = "11"
+            }
+            $tag = "$($env:DOCKER_REGISTRY_URL)/edt:$distrVersion"
+            $dockerfile = "edt/Dockerfile"
+        }
+        "onec-server" {
+            $distrName = "server"
+            $distrVersion = $env:ONEC_VERSION
+            $baseImage = "ubuntu"
+            $baseTag = "20.04"
+            $tag = "$($env:DOCKER_REGISTRY_URL)/onec-server:$distrVersion"
+            $dockerfile = "server/Dockerfile"
+        }
+        "crs" {
+            $distrName = "server"
+            $distrVersion = $env:ONEC_VERSION
+            $baseImage = "onec-server"
+            $baseTag = $env:ONEC_VERSION
+            $tag = "$($env:DOCKER_REGISTRY_URL)/crs:$distrVersion"
+            $dockerfile = "crs/Dockerfile"
+        }
+        "crs-apache" {
+            $distrName = "server"
+            $distrVersion = $env:ONEC_VERSION
+            $baseImage = "crs"
+            $baseTag = $env:ONEC_VERSION
+            $tag = "$($env:DOCKER_REGISTRY_URL)/crs-apache:$distrVersion"
+            $dockerfile = "crs-apache/Dockerfile"
+        }
+        "onec-client" {
+            $distrName = "client"
+            $distrVersion = $env:ONEC_VERSION
+            $baseImage = "ubuntu"
+            $baseTag = "20.04"
+            $tag = "$($env:DOCKER_REGISTRY_URL)/onec-client:$distrVersion"
+            $dockerfile = "client/Dockerfile"
+        }
+        "onec-client-vnc" {
+            $distrName = "client"
+            $distrVersion = $env:ONEC_VERSION
+            $baseImage = "onec-client"
+            $baseTag = $env:ONEC_VERSION
+            $tag = "$($env:DOCKER_REGISTRY_URL)/onec-client-vnc:$distrVersion"
+            $dockerfile = "client-vnc/Dockerfile"
+        }
+    }
+
+    Get-DistribByYard -distrName $distrName -distrVersion $distrVersion -distrPath $distrPath
+    
+    docker build `
+        --build-arg DISTR_HOST=$distrHost `
+        --build-arg DISTR_VERSION=$distrVersion `
+        --build-arg DOCKER_REGISTRY_URL=$env:DOCKER_REGISTRY_URL `
+        --build-arg BASE_IMAGE=$baseImage `
+        --build-arg BASE_TAG=$baseTag `
+        --tag $tag `
+        --file $dockerfile .
+
+    docker push $tag
+}

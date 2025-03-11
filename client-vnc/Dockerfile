@@ -1,6 +1,7 @@
 ARG DOCKER_REGISTRY_URL=localhost:5000
-ARG ONEC_VERSION=8.3.25.1546
-FROM ${DOCKER_REGISTRY_URL}/onec-client:${ONEC_VERSION} AS onecclient
+ARG BASE_IMAGE=onec-client
+ARG BASE_TAG=8.3.25.1546
+FROM ${DOCKER_REGISTRY_URL}/${BASE_IMAGE}:${BASE_TAG}
 
 ADD https://github.com/just-containers/s6-overlay/releases/download/v2.2.0.3/s6-overlay-amd64-installer /tmp/s6-overlay-installer
 COPY ./client-vnc/1cestart.desktop /root/Desktop/1cestart.desktop

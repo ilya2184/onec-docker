@@ -45,7 +45,6 @@ EDT_VERSION=2024.2.3
 DOCKER_REGISTRY_URL=localhost:5000
 DOCKER_LOGIN=login
 DOCKER_PASSWORD=pass
-DOCKER_SYSTEM_PRUNE=false
 ```
 
 чего на bat и sh - не проврял, проверял исправлял скрипты ps1, выполнение скриптов предполагается в корневой директории (там где они лежат), в другой - не будет работать

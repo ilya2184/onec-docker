@@ -2,7 +2,7 @@ ARG BASE_IMAGE=bellsoft/liberica-openjdk-debian
 ARG BASE_TAG=17.0.14
 
 FROM ${BASE_IMAGE}:${BASE_TAG}
-ARG EDT_VERSION=2024.2.3
+ARG DISTR_VERSION=2024.2.3
 ARG DISTR_HOST=host.docker.internal:5555
 
 ADD https://download2.gluonhq.com/openjfx/17.0.14/openjfx-17.0.14_linux-x64_bin-sdk.zip /tmp/javafx-sdk.zip
@@ -24,8 +24,8 @@ RUN apt-get update \
   && localedef -i ru_RU -c -f UTF-8 -A /usr/share/locale/locale.alias ru_RU.UTF-8 \
   && export LANG=ru_RU.UTF-8 && export LANGUAGE=ru_RU:ru && export LC_ALL=ru_RU.UTF-8 \
   && wget --recursive --no-parent --quiet \
-      http://${DISTR_HOST}/distr/DevelopmentTools10/${EDT_VERSION} \
-  && mv /tmp/${DISTR_HOST}/distr/DevelopmentTools10/${EDT_VERSION}/* /tmp/ \
+      http://${DISTR_HOST}/distr/DevelopmentTools10/${DISTR_VERSION} \
+  && mv /tmp/${DISTR_HOST}/distr/DevelopmentTools10/${DISTR_VERSION}/* /tmp/ \
   && chmod +x ./1ce-installer-cli \
   && ./1ce-installer-cli install all --ignore-hardware-checks --ignore-signature-warnings \
   && rm -rf /tmp/* \

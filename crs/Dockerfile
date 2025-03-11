@@ -1,6 +1,7 @@
 ARG DOCKER_REGISTRY_URL=localhost:5000
+ARG BASE_IMAGE=onec-server
 ARG BASE_TAG=8.3.25.1546
-FROM ${DOCKER_REGISTRY_URL}/onec-server:${BASE_TAG} AS onecserver
+FROM ${DOCKER_REGISTRY_URL}/${BASE_IMAGE}:${BASE_TAG}
 
 ADD https://github.com/tianon/gosu/releases/download/1.17/gosu-amd64 /bin/gosu
 
