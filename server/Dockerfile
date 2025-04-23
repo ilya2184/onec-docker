@@ -16,9 +16,12 @@ RUN set -xe \
     && apt-get update \
     && DEBIAN_FRONTEND=noninteractive apt-get install --yes --no-install-recommends \
         ca-certificates \
+        fontconfig \
+        libfontconfig1 \
         libgssapi-krb5-2 \
         locales \
         procps \
+        ttf-mscorefonts-installer \
         tzdata \
         wget \
     # общая настройка
@@ -44,10 +47,10 @@ RUN set -xe \
     && getent group grp1cv8 || groupadd -r grp1cv8 --gid=999 \
     && getent passwd usr1cv8 || useradd -r -g grp1cv8 --uid=999 --home-dir=/home/usr1cv8 --shell=/bin/bash usr1cv8 \
     && mkdir -p /var/log/1C /home/usr1cv8/.1cv8/1C/1cv8/conf /opt/1cv8/current/conf \
-    && chown -R usr1cv8:grp1cv8 /var/log/1C /home/usr1cv8 \
     # кладем конфиг сервера
     && cp /tmp/logcfg.xml /opt/1cv8/current/conf \
     && ln -s /opt/1cv8/current/conflogcfg.xml /home/usr1cv8/.1cv8/1C/1cv8/conf/logcfg.xml \
+    && chown -R usr1cv8:grp1cv8 /var/log/1C /home/usr1cv8 /opt/1cv8/current/conf \
     # точка входа
     && cp /tmp/docker-entrypoint.sh / \
     && chmod +x /docker-entrypoint.sh \
@@ -59,7 +62,7 @@ ENV LANGUAGE=ru_RU:ru
 ENV LC_ALL=ru_RU.UTF-8
 ENV PATH="/opt/1cv8/current:$PATH"
 
-VOLUME /home/usr1cv8/.1cv8 /var/log/1C
+VOLUME /home/usr1cv8/.1cv8 /var/log/1C /var/1C/licenses
 
 ENTRYPOINT ["/docker-entrypoint.sh"]
 EXPOSE 1540 1541 1545 1560
