@@ -351,7 +351,7 @@ function Build-DockerImage {
 
     Get-DistribByYard -distrName $distrName -distrVersion $distrVersion -distrPath $distrPath
     
-    docker build `
+    docker build --no-cache `
         --build-arg DISTR_HOST=$distrHost `
         --build-arg DISTR_VERSION=$distrVersion `
         --build-arg DOCKER_REGISTRY_URL=$env:DOCKER_REGISTRY_URL `
