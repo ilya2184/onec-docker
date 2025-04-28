@@ -17,6 +17,8 @@ RUN set -xe \
     && DEBIAN_FRONTEND=noninteractive apt-get install --yes --no-install-recommends \
         ca-certificates \
         fontconfig \
+        imagemagick \
+        iproute2 \
         libfontconfig1 \
         libgssapi-krb5-2 \
         locales \
