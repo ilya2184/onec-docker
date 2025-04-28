@@ -7,6 +7,7 @@ $distrPath = Join-Path -Path $PSScriptRoot -ChildPath "distr"
 Start-DistribWebServer -distrPath $distrPath -distrWebPort 8088
 $distrHost = "host.docker.internal:8088"
 
-Build-DockerImage -buildType "edt" -distrHost $distrHost -distrPath $distrPath
+Get-DistribByYard -buildType "edt" -distrPath $distrPath
+Build-DockerImage -buildType "edt" -distrHost $distrHost
 
 Stop-DistribWebServer

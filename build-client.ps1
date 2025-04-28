@@ -7,6 +7,7 @@ $distrPath = Join-Path -Path $PSScriptRoot -ChildPath "distr"
 Start-DistribWebServer -distrPath $distrPath -distrWebPort 8088
 $distrHost = "host.docker.internal:8088"
 
-Build-DockerImage -buildType "onec-client" -distrHost $distrHost -distrPath $distrPath
+Get-DistribByYard -buildType "onec-client" -distrPath $distrPath
+Build-DockerImage -buildType "onec-client" -distrHost $distrHost
 
 Stop-DistribWebServer
