@@ -9,6 +9,6 @@ $distrHost = "host.docker.internal:8088"
 
 # требуется Build-DockerImage -buildType "onec-server" -distrHost $distrHost
 # требуется Build-DockerImage -buildType "crs" -distrHost $distrHost
-Build-DockerImage -buildType "crs-apache" -distrHost $distrHost
+Build-DockerImage -buildType "crs-apache" -distrHost $distrHost -distrPath $distrPath
 
 Stop-DistribWebServer
