@@ -38,7 +38,7 @@ setup_ras_cmd() {
 
 # Изменение прав доступа к директории пользователя
 change_directory_permissions() {
-  chown -R usr1cv8:grp1cv8 /home/usr1cv8
+  chown -R usr1cv8:grp1cv8 /var/log/1C /home/usr1cv8 /opt/1cv8/current/conf /var/1C/licenses
 }
 
 # Главная функция скрипта
@@ -50,13 +50,15 @@ main() {
     setup_ragent_cmd
     setup_ras_cmd
 
+    cd /home/usr1cv8
+
     # Добавляем каталог с исполняемыми файлами 1С в PATH
     PATH="/opt/1cv8/current:$PATH"
 
-    echo "Выполняемая команда: $RAS_CMD"
+    echo "Exec to background: $RAS_CMD"
     $RAS_CMD 2>&1 &  # Запуск ras в фоновом режиме
 
-    echo "Выполняемая команда: $RAGENT_CMD"
+    echo "Exec: $RAGENT_CMD "
     exec $RAGENT_CMD 2>&1
   else
     # Если первый аргумент не 'ragent', выполняем команду, переданную в аргументах
