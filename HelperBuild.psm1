@@ -170,12 +170,12 @@ function Get-BuildConfig {
 
 function Build-DockerImage {
 
- 
     param (
         [Parameter(Mandatory=$true)]
         [ValidateSet("edt", "onec-server", "crs", "crs-apache", "onec-client", "onec-client-vnc")]
         [string]$buildType,
-        [string]$distrHost
+        [string]$distrHost,
+        [boolean]$noCache
     )
 
     $buildConfig = Get-BuildConfig -buildType $buildType
@@ -185,15 +185,30 @@ function Build-DockerImage {
     $dockerfile = $buildConfig.dfName
     $tag = $buildConfig.tag
     $distrVersion = $buildConfig.distrVersion
+
+    $dockerArgs = @()
+
+    if ($noCache) {
+        $dockerArgs += "--no-cache"
+    }
     
-    docker build --no-cache `
-        --build-arg DISTR_HOST=$distrHost `
-        --build-arg DISTR_VERSION=$distrVersion `
-        --build-arg DOCKER_REGISTRY_URL=$env:DOCKER_REGISTRY_URL `
-        --build-arg BASE_IMAGE=$baseImage `
-        --build-arg BASE_TAG=$baseTag `
-        --tag $tag `
-        --file $dockerfile .
+    $dockerArgs += "--build-arg"
+    $dockerArgs += "DISTR_HOST=$distrHost"
+    $dockerArgs += "--build-arg"
+    $dockerArgs += "DISTR_VERSION=$distrVersion"
+    $dockerArgs += "--build-arg"
+    $dockerArgs += "DOCKER_REGISTRY_URL=$env:DOCKER_REGISTRY_URL"
+    $dockerArgs += "--build-arg"
+    $dockerArgs += "BASE_IMAGE=$baseImage"
+    $dockerArgs += "--build-arg"
+    $dockerArgs += "BASE_TAG=$baseTag"
+    $dockerArgs += "--tag"
+    $dockerArgs += $tag
+    $dockerArgs += "--file"
+    $dockerArgs += $dockerfile
+    $dockerArgs += "."
+    
+    docker build @dockerArgs
 
     docker push $buildConfig.tag
 
