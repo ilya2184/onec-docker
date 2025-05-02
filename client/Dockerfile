@@ -18,6 +18,7 @@ RUN set -xe \
       ca-certificates \
       libfontconfig1 \
       libglib2.0-0 \
+      libglu1-mesa \
       libgsf-1-114 \
       libgssapi-krb5-2 \
       libgtk2.0-0 \
@@ -56,6 +57,7 @@ RUN set -xe \
     && chown -R usr1cv8:grp1cv8 /var/log/1C /home/usr1cv8 \
     # кладем конфиг клиента
     && cp /tmp/conf.cfg /opt/1cv8/current/conf \
+    && ln -s /tmp /opt/1cv8/common/tmp \
     # чтобы xvfb нормально работал
     && mkdir -p /tmp/.X11-unix \
     && chmod 1777 -R /tmp \

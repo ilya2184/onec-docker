@@ -54,8 +54,8 @@ RUN set -xe \
     # кладем конфиг сервера
     && cp /tmp/logcfg-excp.xml /opt/1cv8/current/conf \
     && cp /tmp/logcfg-full.xml /opt/1cv8/current/conf \
-    && cp /tmp/logcfg-excp.xml /opt/1cv8/current/conf/logcfg.xml \
-    && ln -s /opt/1cv8/current/conf/logcfg.xml /home/usr1cv8/.1cv8/1C/1cv8/conf/logcfg.xml \
+    && ln -s /opt/1cv8/current/conf/logcfg-full.xml /opt/1cv8/current/conf/logcfg.xml \
+    && ln -s /tmp /opt/1cv8/common/tmp \
     && chown -R usr1cv8:grp1cv8 /var/log/1C /home/usr1cv8 /opt/1cv8/current/conf /var/1C/licenses \
     # точка входа
     && cp /tmp/docker-entrypoint.sh / \
