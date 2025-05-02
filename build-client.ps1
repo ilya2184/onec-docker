@@ -8,6 +8,6 @@ Start-DistribWebServer -distrPath $distrPath -distrWebPort 8088
 $distrHost = "host.docker.internal:8088"
 
 Get-DistribByYard -buildType "onec-client" -distrPath $distrPath
-Build-DockerImage -buildType "onec-client" -distrHost $distrHost
+Build-DockerImage -buildType "onec-client" -distrHost $distrHost -noCache:$true
 
 Stop-DistribWebServer
