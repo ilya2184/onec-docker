@@ -9,7 +9,8 @@ ARG DISTR_VERSION=8.3.25.1546
 WORKDIR /tmp
 
 ADD https://github.com/tianon/gosu/releases/download/1.17/gosu-amd64 /bin/gosu
-COPY ./server/logcfg.xml /tmp/logcfg.xml
+COPY ./server/logcfg-excp.xml /tmp/logcfg-excp.xml
+COPY ./server/logcfg-full.xml /tmp/logcfg-full.xml
 COPY ./server/docker-entrypoint.sh /tmp/docker-entrypoint.sh
 
 RUN set -xe \
@@ -23,6 +24,7 @@ RUN set -xe \
         libgssapi-krb5-2 \
         locales \
         procps \
+        socat \
         ttf-mscorefonts-installer \
         tzdata \
         wget \
@@ -48,11 +50,13 @@ RUN set -xe \
     # прользователь и группа для работы 1С
     && getent group grp1cv8 || groupadd -r grp1cv8 --gid=999 \
     && getent passwd usr1cv8 || useradd -r -g grp1cv8 --uid=999 --home-dir=/home/usr1cv8 --shell=/bin/bash usr1cv8 \
-    && mkdir -p /var/log/1C /home/usr1cv8/.1cv8/1C/1cv8/conf /opt/1cv8/current/conf \
+    && mkdir -p /var/log/1C /home/usr1cv8/.1cv8/1C/1cv8/conf /opt/1cv8/current/conf /var/1C/licenses \
     # кладем конфиг сервера
-    && cp /tmp/logcfg.xml /opt/1cv8/current/conf \
-    && ln -s /opt/1cv8/current/conflogcfg.xml /home/usr1cv8/.1cv8/1C/1cv8/conf/logcfg.xml \
-    && chown -R usr1cv8:grp1cv8 /var/log/1C /home/usr1cv8 /opt/1cv8/current/conf \
+    && cp /tmp/logcfg-excp.xml /opt/1cv8/current/conf \
+    && cp /tmp/logcfg-full.xml /opt/1cv8/current/conf \
+    && cp /tmp/logcfg-excp.xml /opt/1cv8/current/conf/logcfg.xml \
+    && ln -s /opt/1cv8/current/conf/logcfg.xml /home/usr1cv8/.1cv8/1C/1cv8/conf/logcfg.xml \
+    && chown -R usr1cv8:grp1cv8 /var/log/1C /home/usr1cv8 /opt/1cv8/current/conf /var/1C/licenses \
     # точка входа
     && cp /tmp/docker-entrypoint.sh / \
     && chmod +x /docker-entrypoint.sh \
@@ -67,5 +71,5 @@ ENV PATH="/opt/1cv8/current:$PATH"
 VOLUME /home/usr1cv8/.1cv8 /var/log/1C /var/1C/licenses
 
 ENTRYPOINT ["/docker-entrypoint.sh"]
-EXPOSE 1540 1541 1545 1560
+EXPOSE 1540 1541 1545 1560 8413
 CMD ["ragent"]
