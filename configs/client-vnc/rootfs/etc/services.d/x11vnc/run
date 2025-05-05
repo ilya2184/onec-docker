@@ -1,5 +1,5 @@
 #!/usr/bin/with-contenv sh
 
-echo "Starting /usr/bin/x11vnc jn display $DISPLAY"
+echo "Starting x11vnc on display $DISPLAY"
 
-exec x11vnc -q -forever -shared -nomodtweak -capslock -display $DISPLAY
+exec x11vnc -q -forever -shared -noxrecord -noxfixes -noxdamage -noshm -display $DISPLAY
