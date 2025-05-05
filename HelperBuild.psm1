@@ -97,7 +97,7 @@ function Stop-DistribWebServer {
 function Get-BuildConfig {
     param (
         [Parameter(Mandatory = $true)]
-        [ValidateSet("edt", "onec-server", "crs", "crs-apache", "onec-client", "onec-client-vnc")]
+        [ValidateSet("edt", "onec-server", "crs", "crs-apache", "onec-client", "onec-client-vnc", "onec-server-client-vnc")]
         [string]$buildType
     )
 
@@ -156,6 +156,15 @@ function Get-BuildConfig {
             $tag = "$($env:DOCKER_REGISTRY_URL)/onec-client-vnc:$distrVersion"
             $dfName = "client-vnc/Dockerfile"
         }
+        "onec-server-client-vnc" {
+            $distrName = "server"
+            $distrVersion = $env:ONEC_VERSION
+            $baseImage = "ubuntu"
+            $baseTag = "20.04"
+            $tag = "$($env:DOCKER_REGISTRY_URL)/onec-server-client-vnc:$distrVersion"
+            $dfName = "server-client-vnc/Dockerfile"
+        }
+
     }
 
     return [PSCustomObject]@{
@@ -172,7 +181,7 @@ function Build-DockerImage {
 
     param (
         [Parameter(Mandatory=$true)]
-        [ValidateSet("edt", "onec-server", "crs", "crs-apache", "onec-client", "onec-client-vnc")]
+        [ValidateSet("edt", "onec-server", "crs", "crs-apache", "onec-client", "onec-client-vnc", "onec-server-client-vnc")]
         [string]$buildType,
         [string]$distrHost,
         [boolean]$noCache
@@ -210,6 +219,6 @@ function Build-DockerImage {
     
     docker build @dockerArgs
 
-    docker push $buildConfig.tag
+    #docker push $buildConfig.tag
 
 }
