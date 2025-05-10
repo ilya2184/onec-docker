@@ -75,7 +75,8 @@ RUN set -xe \
     && mkdir -p /var/log/1C /home/usr1cv8/.1cv8/1C/1cv8/conf /opt/1cv8/current/conf /var/1C/licenses \
     # кладем конфиг сервера
     && cp /tmp/logcfg-excp.xml /opt/1cv8/current/conf \
-    && ln -s /opt/1cv8/current/conf/logcfg-full.xml /opt/1cv8/current/conf/logcfg.xml \
+    && ln -s /opt/1cv8/current/conf/logcfg-excp.xml /opt/1cv8/current/conf/logcfg.xml \
+    # обход ошибки некоторых версий 1С
     && ln -s /tmp /opt/1cv8/common/tmp \
     # точка входа
     && mkdir -p /home/usr1cv8/.gnupg && chmod 700 /home/usr1cv8/.gnupg \
@@ -99,6 +100,7 @@ ENV DISPLAY=:0
 ENV DISPLAY_WIDTH=1440
 ENV DISPLAY_HEIGHT=900
 
+# не используй mount bind, только volume bind
 VOLUME /home/usr1cv8/.1cv8 /var/log/1C /var/1C/licenses
 
 EXPOSE 1540 1541 1545 1560 1561 8413

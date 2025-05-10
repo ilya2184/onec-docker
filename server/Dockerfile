@@ -55,6 +55,7 @@ RUN set -xe \
     && cp /tmp/logcfg-excp.xml /opt/1cv8/current/conf \
     && cp /tmp/logcfg-full.xml /opt/1cv8/current/conf \
     && ln -s /opt/1cv8/current/conf/logcfg-full.xml /opt/1cv8/current/conf/logcfg.xml \
+    # обход ошибки некоторых версий 1С
     && ln -s /tmp /opt/1cv8/common/tmp \
     && chown -R usr1cv8:grp1cv8 /var/log/1C /home/usr1cv8 /opt/1cv8/current/conf /var/1C/licenses \
     # точка входа
@@ -68,6 +69,7 @@ ENV LANGUAGE=ru_RU:ru
 ENV LC_ALL=ru_RU.UTF-8
 ENV PATH="/opt/1cv8/current:$PATH"
 
+# не используй mount bind, только volume bind
 VOLUME /home/usr1cv8/.1cv8 /var/log/1C /var/1C/licenses
 
 ENTRYPOINT ["/docker-entrypoint.sh"]

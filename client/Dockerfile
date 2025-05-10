@@ -57,6 +57,7 @@ RUN set -xe \
     && chown -R usr1cv8:grp1cv8 /var/log/1C /home/usr1cv8 \
     # кладем конфиг клиента
     && cp /tmp/conf.cfg /opt/1cv8/current/conf \
+    # обход ошибки некоторых версий 1С
     && ln -s /tmp /opt/1cv8/common/tmp \
     # чтобы xvfb нормально работал
     && mkdir -p /tmp/.X11-unix \
@@ -75,6 +76,7 @@ ENV DISPLAY=:0
 ENV DISPLAY_WIDTH=1440
 ENV DISPLAY_HEIGHT=900
 
+# не используй mount bind, только volume bind
 VOLUME /home/usr1cv8
 
 # порты менеджера тестирования
