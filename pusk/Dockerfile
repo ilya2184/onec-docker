@@ -17,7 +17,6 @@ RUN apt-get update \
   && tar xzf /tmp/ite-pusk-1.2.3.tar.gz -C /opt/ \
   && rm -rf /tmp/ite-pusk-1.2.3.tar.gz \
   && chmod +x /opt/pusk/ite-pusk-linux.sh \
-  && ln -s /usr/lib/jvm/jdk-17.0.14-bellsoft-x86_64/bin/java /usr/bin/java \
   && unzip /tmp/java-api-8.3.11.zip -d /tmp/ \
   && rm -rf /tmp/java-api-8.3.11.zip \
   && unzip /tmp/java-api-8.3.11/java-api-1.6.7.zip -d /tmp/ \
@@ -29,6 +28,11 @@ RUN apt-get update \
   && echo '#!/bin/bash\n echo "systemd (systemctl) is not available in this container."\n exit 0' > /usr/local/bin/systemctl \
   && chmod +x /usr/local/bin/systemctl \
   && ln -s /usr/local/bin/systemctl /bin/systemctl
+
+# Detect JAVA_HOME from the installed JDK and export it for both s6 services and interactive shells
+RUN JAVA_BIN="$(command -v java)"; \
+  JAVA_HOME="$(dirname "$(dirname "$JAVA_BIN")")"; \
+  ln -s "$JAVA_BIN" /usr/bin/java
 
 ENV LANG=ru_RU.UTF-8
 ENV LANGUAGE=ru_RU:ru
