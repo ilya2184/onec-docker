@@ -89,7 +89,7 @@ RUN set -xe \
     # зачищаем временные файлы
     && rm -rf /tmp/*
 
-COPY ./configs/client-vnc/rootfs/ /
+COPY ./configs/server-vnc/rootfs/ /
 
 ENV LANG=ru_RU.UTF-8
 ENV LANGUAGE=ru_RU:ru 
